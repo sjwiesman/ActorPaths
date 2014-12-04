@@ -19,13 +19,29 @@ public class ActorPaths {
 
     private static int pathLength = 0;
 
-    public static class Map extends Mapper<LongWritable, Text, Text, Text>{
+    public static class Map extends Mapper<LongWritable, Text, Text, Text> {
+
+        protected boolean duplicates(List<String> list) {
+            for (int i = 0; i < list.size(); i++) {
+                for (int j = i+1; j < list.size(); j++) {
+                    if (list.get(i).equals(list.get(j))) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
 
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 
-            final String[] path = value.toString().split("\t");
+            final String[] path = value.toString().trim().split("\t");
 
             if (path.length < 2) {
+                return;
+            }
+
+            if (duplicates(Arrays.asList(path))) {
                 return;
             }
 
@@ -33,32 +49,37 @@ public class ActorPaths {
             //example
             //path = {"a", "b", "c"}
             //key on "a" and "c"
+
             context.write(new Text(path[0]), value);
             context.write(new Text(path[path.length-1]), value);
         }
     }
 
     public static class Reduce extends Reducer<Text, Text, Text, NullWritable> {
-	
-	private String append(List<String> head, List<String> tail) {
-	 	head.addAll(tail);
-	
-		for (int i = 0; i < head.size(); i++) {
-		    for (int j = i+1; j < head.size(); j++) {
-		   	    if (head.get(i).equals(head.get(j))) {
-			       return null;
-			    }
-		    }			
-		}
 
-		final StringBuilder builder = new StringBuilder(head.get(0));
-		for (int i = 1; i < head.size(); i++) {
-		    builder.append('\t');
-		    builder.append(head.get(i));
-		}
+        protected boolean duplicates(List<String> list) {
+            for (int i = 0; i < list.size(); i++) {
+                for (int j = i+1; j < list.size(); j++) {
+                    if (list.get(i).equals(list.get(j))) {
+                        return false;
+                    }
+                }
+            }
 
-		return builder.toString();
-	}
+            return true;
+        }
+
+        private String buildString(List<String> list) {
+
+
+            final StringBuilder builder = new StringBuilder(list.get(0));
+            for (int i = 1; i < list.size(); i++) {
+                builder.append('\t');
+                builder.append(list.get(i));
+            }
+
+            return builder.toString();
+        }
 
         public void reduce(Text key, Iterator<Text> values, Context context) throws IOException, InterruptedException {
 
@@ -78,10 +99,17 @@ public class ActorPaths {
 
             for (String back : head) {
 
-                final List<String> backActors = new LinkedList<String>(Arrays.asList(back.split("\t")));
+                final List<String> backActors = new ArrayList<String>(Arrays.asList(back.split("\t")));
                 backActors.remove(0);
 
                 for (String front : tail) {
+
+                    final String reverseBack = new StringBuilder(back).reverse().toString();
+
+                    if (reverseBack.equals(front)) {
+                        continue;
+                    }
+
                     final List<String> frontActors = new ArrayList<String>(Arrays.asList(front.split("\t")));
 
                     if (backActors.get(backActors.size() -1).equals(frontActors.get(0))) {
@@ -92,28 +120,14 @@ public class ActorPaths {
                         continue;
                     }
 
-                    final int frontLength = frontActors.size();
-                    final int backLength  = backActors.size();
+                    List<String> path = new ArrayList(frontActors);
+                    path.addAll(backActors);
 
-                    frontActors.removeAll(backActors);
-                    backActors.removeAll(frontActors);
-
-                    if (frontLength != frontActors.size() || backLength != backActors.size()) {
+                    if (duplicates(path)) {
                         continue;
                     }
 
-		            final String path = append(frontActors, backActors);
-
-                    if (path == null) {
-			            continue;
-		            }
-
-		            String[] check = path.split("\t");
-		            if (check[0].equals(check[check.length -1])) {
-			            continue;
-	                }
-
-		            context.write(new Text(path), NullWritable.get());
+		            context.write(new Text(buildString(path)), NullWritable.get());
                 }
             }
 
