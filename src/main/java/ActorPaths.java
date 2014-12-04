@@ -63,7 +63,10 @@ public class ActorPaths {
 
                 for (String front : tail) {
                     final List<String> frontActors = new ArrayList<String>(Arrays.asList(front.split("\t")));
-                    frontActors.remove(frontActors.size() -1);
+
+                    if (backActors.get(backActors.size() -1).equals(frontActors.get(0))) {
+                        continue;
+                    }
 
                     if (backActors.size() + frontActors.size() != pathLength) {
                         continue;
