@@ -41,9 +41,9 @@ public class ActorPaths {
                 return;
             }
 
-            if (duplicates(Arrays.asList(path))) {
-                return;
-            }
+//            if (duplicates(Arrays.asList(path))) {
+//                return;
+//            }
 
             //Key each value based on the starting and ending actors in the current path
             //example
@@ -71,7 +71,7 @@ public class ActorPaths {
 
         private String buildString(List<String> list) {
 
-            final StringBuilder builder = new StringBuilder(list.get(0));
+            final StringBuilder builder = new StringBuilder(list.get(list.size() -1));
             for (int i = 1; i < list.size(); i++) {
                 builder.append('\t');
                 builder.append(list.get(i));
@@ -138,7 +138,7 @@ public class ActorPaths {
         Job job = new Job(conf, "actor path " + pathLength);
         job.setJarByClass(ActorPaths.class);
         job.setMapperClass(Map.class);
-        job.setReducerClass(Reduce.class);
+        job.setReducerClass(Reducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(NullWritable.class);
 
