@@ -39,6 +39,26 @@ public class ActorPaths {
     }
 
     public static class Reduce extends Reducer<Text, Text, Text, NullWritable> {
+	
+	private String append(List<String> head, List<String> tail) {
+	 	head.addAll(tail);
+	
+		for (int i = 0; i < head.size(); i++) {
+		    for (int j = i+1; j < head.size(); j++) {
+		   	if (head.get(i).equals(head.get(j))) {
+			    return null;
+			}	
+		    }			
+		}
+
+		final StringBuilder builder = new StringBuilder(head.get(0));
+		for (int i = 1; i < head.size(); i++) {
+		    builder.append('\t');
+		    builder.append(head.get(i));
+		}
+
+		return builder.toString();
+	}
 
         public void reduce(Text key, Iterator<Text> values, Context context) throws IOException, InterruptedException {
 
@@ -72,16 +92,17 @@ public class ActorPaths {
                         continue;
                     }
 
-                    frontActors.addAll(backActors);
+		    final String path = append(frontActors, backActors);
+                    if (path == null) {
+			continue;
+		    }
 
-                    final StringBuilder builder = new StringBuilder(frontActors.get(0));
+		    String[] check = path.split('\t');
+		    if (check[0].equals(check[check.length -1])) {
+			continue;
+	            }
 
-                    for (int i = 0; i < frontActors.size(); i++) {
-                        builder.append('\t');
-                        builder.append(frontActors.get(i));
-                    }
-
-                    context.write(new Text(frontActors.toString()), NullWritable.get());
+		    context.write(new Text(path), NullWritable.get());
                 }
             }
 
@@ -107,8 +128,8 @@ public class ActorPaths {
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Text.class);
 
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        FileInputFormat.addInputPath(job, new Path(args[1]));
+        FileOutputFormat.setOutputPath(job, new Path(args[2]));
 
         boolean result = job.waitForCompletion(true);
         System.exit(result ? 0 : 1);
