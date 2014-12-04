@@ -97,7 +97,7 @@ public class ActorPaths {
 			continue;
 		    }
 
-		    String[] check = path.split('\t');
+		    String[] check = path.split("\t");
 		    if (check[0].equals(check[check.length -1])) {
 			continue;
 	            }
