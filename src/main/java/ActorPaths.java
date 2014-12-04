@@ -103,12 +103,6 @@ public class ActorPaths {
 
                 for (String front : tail) {
 
-                    final String reverseBack = new StringBuilder(back).reverse().toString();
-
-                    if (reverseBack.equals(front)) {
-                        continue;
-                    }
-
                     final List<String> frontActors = new ArrayList<String>(Arrays.asList(front.split("\t")));
 
                     final List<String> path = new ArrayList<String>(frontActors);
