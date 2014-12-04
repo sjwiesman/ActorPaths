@@ -71,7 +71,6 @@ public class ActorPaths {
 
         private String buildString(List<String> list) {
 
-
             final StringBuilder builder = new StringBuilder(list.get(0));
             for (int i = 1; i < list.size(); i++) {
                 builder.append('\t');
@@ -112,22 +111,21 @@ public class ActorPaths {
 
                     final List<String> frontActors = new ArrayList<String>(Arrays.asList(front.split("\t")));
 
-                    if (backActors.get(backActors.size() -1).equals(frontActors.get(0))) {
-                        continue;
-                    }
-
-                    if (backActors.size() + frontActors.size() != pathLength) {
-                        continue;
-                    }
-
-                    List<String> path = new ArrayList(frontActors);
+                    final List<String> path = new ArrayList<String>(frontActors);
                     path.addAll(backActors);
+
+                    if (path.size() != pathLength) {
+                        continue;
+                    }
 
                     if (duplicates(path)) {
                         continue;
                     }
 
-		            context.write(new Text(buildString(path)), NullWritable.get());
+                    final String string = buildString(path);
+
+                    context.write(new Text(string), NullWritable.get());
+
                 }
             }
 
