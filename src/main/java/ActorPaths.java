@@ -45,9 +45,9 @@ public class ActorPaths {
 	
 		for (int i = 0; i < head.size(); i++) {
 		    for (int j = i+1; j < head.size(); j++) {
-		   	if (head.get(i).equals(head.get(j))) {
-			    return null;
-			}	
+		   	    if (head.get(i).equals(head.get(j))) {
+			       return null;
+			    }
 		    }			
 		}
 
@@ -92,17 +92,28 @@ public class ActorPaths {
                         continue;
                     }
 
-		    final String path = append(frontActors, backActors);
+                    final int frontLength = frontActors.size();
+                    final int backLength  = backActors.size();
+
+                    frontActors.removeAll(backActors);
+                    backActors.removeAll(frontActors);
+
+                    if (frontLength != frontActors.size() || backLength != backActors.size()) {
+                        continue;
+                    }
+
+		            final String path = append(frontActors, backActors);
+
                     if (path == null) {
-			continue;
-		    }
+			            continue;
+		            }
 
-		    String[] check = path.split("\t");
-		    if (check[0].equals(check[check.length -1])) {
-			continue;
-	            }
+		            String[] check = path.split("\t");
+		            if (check[0].equals(check[check.length -1])) {
+			            continue;
+	                }
 
-		    context.write(new Text(path), NullWritable.get());
+		            context.write(new Text(path), NullWritable.get());
                 }
             }
 
