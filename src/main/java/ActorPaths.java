@@ -76,7 +76,7 @@ public class ActorPaths {
 
             while (it.hasNext()) {
                 final String value = it.next().toString();
-                if (value.split("\t")[0].equals(key)) {
+                if (value.startsWith(key)) {
                     head.add(value);
                 } else {
                     tail.add(value);
@@ -90,7 +90,6 @@ public class ActorPaths {
 
             final Pair pair = partition(key.toString(), values);
 
-
             for (String back : pair.head) {
 
                 final List<String> backActors = new ArrayList<String>(Arrays.asList(back.split("\t")));
@@ -100,12 +99,12 @@ public class ActorPaths {
 
                     final List<String> frontActors = new ArrayList<String>(Arrays.asList(front.split("\t")));
 
-                    final List<String> path = new ArrayList<String>(frontActors);
-                    path.addAll(backActors);
-
-                    if (path.size() != pathLength) {
+                    if (frontActors.size() + backActors.size() != pathLength) {
                         continue;
                     }
+
+                    final List<String> path = new ArrayList<String>(frontActors);
+                    path.addAll(backActors);
 
                     if (duplicates(path)) {
                         continue;

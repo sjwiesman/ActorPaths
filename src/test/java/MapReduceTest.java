@@ -119,8 +119,12 @@ public class MapReduceTest {
                 .withInput(new LongWritable(), new Text("b\ta"))
                 .withInput(new LongWritable(), new Text("b\tc"))
                 .withInput(new LongWritable(), new Text("c\tb"))
+                .withInput(new LongWritable(), new Text("c\td"))
+                .withInput(new LongWritable(), new Text("d\tc"))
                 .withOutput(new Text("c\tb\ta"), NullWritable.get())
                 .withOutput(new Text("a\tb\tc"), NullWritable.get())
+                .withOutput(new Text("d\tc\tb"), NullWritable.get())
+                .withOutput(new Text("b\tc\td"), NullWritable.get())
                 .runTest();
     }
 
