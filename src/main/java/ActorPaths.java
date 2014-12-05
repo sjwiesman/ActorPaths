@@ -17,31 +17,16 @@ import java.util.*;
  */
 public class ActorPaths {
 
-    private static int pathLength = 0;
+    private static int pathLength = 3;
 
     public static class Map extends Mapper<LongWritable, Text, Text, Text> {
 
-        protected boolean duplicates(List<String> list) {
-            for (int i = 0; i < list.size(); i++) {
-                for (int j = i+1; j < list.size(); j++) {
-                    if (list.get(i).equals(list.get(j))) {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
 
-            final String[] path = value.toString().trim().split("\t");
+            final String trimmedValue = value.toString().trim();
+            final String[] path = trimmedValue.split("\t");
 
             if (path.length < 2) {
-                return;
-            }
-
-            if (duplicates(Arrays.asList(path))) {
                 return;
             }
 
@@ -50,26 +35,19 @@ public class ActorPaths {
             //path = {"a", "b", "c"}
             //key on "a" and "c"
 
-            context.write(new Text(path[0]), value);
-            context.write(new Text(path[path.length-1]), value);
+            context.write(new Text(path[0]), new Text(trimmedValue));
+            context.write(new Text(path[path.length-1]), new Text(trimmedValue));
         }
     }
 
     public static class Reduce extends Reducer<Text, Text, Text, NullWritable> {
 
-        protected boolean duplicates(List<String> list) {
-            for (int i = 0; i < list.size(); i++) {
-                for (int j = i+1; j < list.size(); j++) {
-                    if (list.get(i).equals(list.get(j))) {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
+        public boolean duplicates(List<String> list) {
+            Set<String> set = new HashSet(list);
+            return !(set.size() == list.size());
         }
 
-        private String buildString(List<String> list) {
+        public String buildString(List<String> list) {
 
             final StringBuilder builder = new StringBuilder(list.get(0));
             for (int i = 1; i < list.size(); i++) {
@@ -80,28 +58,45 @@ public class ActorPaths {
             return builder.toString();
         }
 
-        public void reduce(Text key, Iterator<Text> values, Context context) throws IOException, InterruptedException {
+        public static class Pair {
+            public final List<String> head;
+            public final List<String> tail;
 
-            final String overlap = key.toString();
+            public Pair(List<String> head, List<String> tail) {
+                this.head = head;
+                this.tail = tail;
+            }
+        }
+
+        public Pair partition(String key, Iterable<Text> iterable) {
+
+            final Iterator<Text> it = iterable.iterator();
             final List<String> head = new ArrayList<String>();
             final List<String> tail = new ArrayList<String>();
 
-            while (values.hasNext()) {
-                final String value = values.next().toString();
-                if (value.startsWith(overlap)) {
+            while (it.hasNext()) {
+                final String value = it.next().toString();
+                if (value.split("\t")[0].equals(key)) {
                     head.add(value);
                 } else {
                     tail.add(value);
                 }
             }
 
+            return new Pair(head, tail);
+        }
 
-            for (String back : head) {
+        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+
+            final Pair pair = partition(key.toString(), values);
+
+
+            for (String back : pair.head) {
 
                 final List<String> backActors = new ArrayList<String>(Arrays.asList(back.split("\t")));
                 backActors.remove(0);
 
-                for (String front : tail) {
+                for (String front : pair.tail) {
 
                     final List<String> frontActors = new ArrayList<String>(Arrays.asList(front.split("\t")));
 
