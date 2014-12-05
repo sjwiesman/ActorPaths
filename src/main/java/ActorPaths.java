@@ -43,7 +43,7 @@ public class ActorPaths {
     public static class Reduce extends Reducer<Text, Text, Text, NullWritable> {
 
         public boolean duplicates(List<String> list) {
-            Set<String> set = new HashSet(list);
+            Set<String> set = new HashSet<String>(list);
             return !(set.size() == list.size());
         }
 

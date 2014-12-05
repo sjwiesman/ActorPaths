@@ -2,12 +2,10 @@
  * @author by sethwiesman on 12/4/14.
  */
 
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mrunit.mapreduce.MapDriver;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 import org.apache.hadoop.mrunit.mapreduce.ReduceDriver;
@@ -31,7 +29,7 @@ public class MapReduceTest {
 
     private MapDriver<LongWritable, Text, Text, Text> mapDriver;
     private ReduceDriver<Text, Text, Text, NullWritable> reduceDriver;
-    private MapReduceDriver<Text, Text, Text, Text, Text, NullWritable> mapReducedriver;
+    private MapReduceDriver<LongWritable, Text, Text, Text, Text, NullWritable> mapReducedriver;
 
     @Before
     public void setup() {
@@ -112,6 +110,18 @@ public class MapReduceTest {
         reduceDriver.withOutput(new Text("a\tb\tc"), NullWritable.get());
 
         reduceDriver.runTest();
+    }
+
+
+    @Test
+    public void mapReduce() {
+        mapReducedriver.withInput(new LongWritable(), new Text("a\tb"))
+                .withInput(new LongWritable(), new Text("b\ta"))
+                .withInput(new LongWritable(), new Text("b\tc"))
+                .withInput(new LongWritable(), new Text("c\tb"))
+                .withOutput(new Text("c\tb\ta"), NullWritable.get())
+                .withOutput(new Text("a\tb\tc"), NullWritable.get())
+                .runTest();
     }
 
 }
