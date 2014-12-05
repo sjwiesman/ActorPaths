@@ -11,11 +11,9 @@ import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 import org.apache.hadoop.mrunit.mapreduce.ReduceDriver;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.internal.matchers.Null;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -29,13 +27,13 @@ public class MapReduceTest {
 
     private MapDriver<LongWritable, Text, Text, Text> mapDriver;
     private ReduceDriver<Text, Text, Text, NullWritable> reduceDriver;
-    private MapReduceDriver<LongWritable, Text, Text, Text, Text, NullWritable> mapReducedriver;
+    private MapReduceDriver<LongWritable, Text, Text, Text, Text, NullWritable> mapReduceDriver;
 
     @Before
     public void setup() {
         mapDriver  = MapDriver.newMapDriver(mapper);
         reduceDriver = ReduceDriver.newReduceDriver(reducer);
-        mapReducedriver = MapReduceDriver.newMapReduceDriver(mapper,reducer);
+        mapReduceDriver = MapReduceDriver.newMapReduceDriver(mapper,reducer);
     }
     @Test
     public void properMap() throws IOException {
@@ -115,7 +113,7 @@ public class MapReduceTest {
 
     @Test
     public void mapReduce() {
-        mapReducedriver.withInput(new LongWritable(), new Text("a\tb"))
+        mapReduceDriver.withInput(new LongWritable(), new Text("a\tb"))
                 .withInput(new LongWritable(), new Text("b\ta"))
                 .withInput(new LongWritable(), new Text("b\tc"))
                 .withInput(new LongWritable(), new Text("c\tb"))
